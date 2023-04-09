@@ -1,1 +1,1 @@
-For the protection of the paper, the relevant database and code will be published after the paper is accepted
+cure.tab为数据，.py文件为模型代码

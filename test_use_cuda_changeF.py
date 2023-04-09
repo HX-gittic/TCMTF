@@ -475,23 +475,13 @@ class Transformer(torch.nn.Module):
         #  '..block2': [b, num_heads, targ_seq_len, inp_seq_len], ...}
 
 
-'''
-num_layers = 4
-d_model = 128
-dff = 512
-num_heads = 8
-'''
-batch_size = 64
-num_layers = 1
-d_model = 100
-dff = 128
-num_heads = 2
+
 input_vocab_size = len(cure_lang.word2id)
 target_vocab_size = len(med_lang.word2id)
 dropout_rate = 0.1
-EPOCHS = 30  # 50 # 30  # 20
+EPOCHS = 20  # 50 # 30  # 20
 
-print_trainstep_every = 60  # 每50个step做一次打印
+print_trainstep_every = 60  
 
 
 class CustomSchedule(torch.optim.lr_scheduler._LRScheduler):
@@ -566,7 +556,7 @@ def mask_loss_func(real, pred):
     # mask = torch.logical_not(real.eq(0)).type(_loss.dtype) # [b, targ_seq_len] pad=0的情况
     mask = torch.logical_not(real.eq(pad)).type(_loss.dtype)  # [b, targ_seq_len] pad!=0的情况
 
-    # 对应位置相乘，token上的损失被保留了下来，pad的loss被置为0或False 去掉，不计算在内
+    
     _loss *= mask
     return _loss.sum() / mask.sum().item()
 
@@ -593,13 +583,7 @@ def mask_accuracy_func(real, pred):
     total_ref = torch.logical_not(real.eq(pad) + real.eq(med_lang.word2id['EOS']))
     total_can = candidates.sum().item()
     total_can = total_can if total_can != 0 else 1
-    '''下面的代码带着严重的顺序，以后可用'''
-    # corrects = _pred.eq(real)  # [b, targ_seq_len] bool值
-
-    # mask = torch.logical_not(real.eq(pad))  # [b, targ_seq_len] bool值 pad!=0的情况
-
-    # 对应位置相乘，token上的值被保留了下来，pad上的值被置为0或False 去掉，不计算在内
-    # corrects *= mask
+    
     precision = float(correct_med) / total_can
     recall = float(correct_med) / float(total_ref.sum().item())
     if precision == 0 or recall == 0:
@@ -967,9 +951,4 @@ def evaluate(model, inp_sentence):
     return decoder_input.squeeze(dim=0), attention_weights
 
 
-s = '脾胃气虚，痰阻气滞证。呕吐痞闷，不思饮食，脘腹胀痛，消瘦倦怠，或气虚肿满。'
-s_targ = "人参 白术 茯苓 甘草 陈皮 半夏 木香 砂仁"
-pred_result, attention_weights = evaluate(reload_model, s)
-pred_sentence = tokenzier_decode(pred_result)
-print('real target:', s_targ)
-print('pred_sentence:', pred_sentence)
+
